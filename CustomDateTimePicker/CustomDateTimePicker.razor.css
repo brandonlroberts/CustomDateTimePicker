@@ -1,0 +1,36 @@
+﻿.fancy-date-box {
+    padding-top: 2px;
+    text-align: center;
+    width: 20px;
+}
+
+.fancy-date-box-year {
+    padding-top: 2px;
+    text-align: center;
+    width: 40px;
+}
+
+.date-box {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 40px;
+    width: 100%;
+}
+
+::deep .mud-input-control {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex: 0;
+    max-width: 100%;
+    position: relative;
+    flex-direction: column;
+    vertical-align: top;
+    margin-top: 6px;
+}
+
+::deep input:focus {
+    outline: none;
+}
