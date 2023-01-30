@@ -168,7 +168,6 @@
         await NewDateTimeCallback.InvokeAsync(_newDateTimeDt);
     }
 
-
     private string GetDateTime(string? value, string defaultValue, int max, int min = 1)
     {
         if (string.IsNullOrEmpty(value) || !int.TryParse(value, out _))
