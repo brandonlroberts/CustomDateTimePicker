@@ -5,7 +5,7 @@
 <h1>Hello, world!</h1>
 
 <div style="max-width:200px;">
-    <CustomDateTimePicker CurrentDateTime="CurrentDateTime" NewDateTimeCallback="DateTimeCallbackHandler" />
+    <DateTimePicker CurrentDateTime="CurrentDateTime" NewDateTimeCallback="DateTimeCallbackHandler" />
 </div> 
 <br/>
 @CurrentDateTime.DateTime.ToLongDateString() @CurrentDateTime.DateTime.ToShortTimeString()
@@ -13,9 +13,9 @@
 @code {
     private DateTimeOffset CurrentDateTime { get; set; } = DateTimeOffset.Now;
     
-    private void DateTimeCallbackHandler(DateTimeOffset result)
+    private void DateTimeCallbackHandler(DateTimeOffset? result)
     {
-        CurrentDateTime = result;
+        CurrentDateTime = result.Value;
     }
 }
 

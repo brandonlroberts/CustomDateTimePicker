@@ -1,0 +1,384 @@
+﻿@inject IJSRuntime JsRuntime
+
+<div class="date-box" style="@_onError">
+    <input class="fancy-date-box"
+           id="Month"
+           type="text"
+           pattern="\d*"
+           maxlength="2"
+           @bind="@Month"
+           @bind:event="oninput"
+           @onkeydown="@(KeyDownMonthEventHandler)"
+           @onblur="@FormatDateTimeFields"
+           onfocus="this.select()" />
+    <MudItem>
+        /
+    </MudItem>
+    <input class="fancy-date-box"
+           id="Date"
+           type="text"
+           pattern="\d*"
+           maxlength="2"
+           @bind="@Date"
+           @bind:event="oninput"
+           @onkeydown="@(KeyDownDateEventHandler)"
+           @onblur="@FormatDateTimeFields"
+           onfocus="this.select()" />
+    <MudItem>
+        /
+    </MudItem>
+    <input class="fancy-date-box-year"
+           id="Year"
+           type="text"
+           pattern="\d*"
+           maxlength="4"
+           @bind="@Year"
+           @bind:event="oninput"
+           @onkeydown="@(KeyDownYearEventHandler)"
+           onfocus="this.select()" />
+    <MudItem>
+        &nbsp;
+    </MudItem>
+    <input class="fancy-date-box"
+           id="Hour"
+           type="text"
+           pattern="\d*"
+           maxlength="2"
+           @bind="@Hour"
+           @bind:event="oninput"
+           @onkeydown="@(KeyDownHourEventHandler)"
+           @onblur="@FormatDateTimeFields"
+           onfocus="this.select()" />
+    <MudItem>
+        :
+    </MudItem>
+    <input class="fancy-date-box"
+           id="Minute"
+           type="text"
+           pattern="\d*"
+           maxlength="2"
+           @bind="@Minute"
+           @bind:event="oninput"
+           @onkeydown="@(KeyDownMinuteEventHandler)"
+           @onblur="@FormatDateTimeFields"
+           onfocus="this.select()" />
+    <MudItem>
+        <MudField Variant="Variant.Text" DisableUnderLine="true">&nbsp;</MudField>
+    </MudItem>
+    <MudTextField Style="max-width: 20px; margin-bottom:20px; flex:auto;" T="DateTime?" Value="@_newDateTimeDt" ValueChanged="FormatDateTime" Format="s" InputType="InputType.DateTimeLocal" DisableUnderLine="true" />
+</div>
+
+@code {
+
+    [Parameter]
+    public DateTimeOffset? CurrentDateTime { get; set; }
+
+    [Parameter]
+    public EventCallback<DateTimeOffset?> NewDateTimeCallback { get; set; }
+
+    private string? _month;
+    private string? _date;
+    private string? _year;
+    private string? _hour;
+    private string? _minute;
+    DateTime? _newDateTimeDt;
+    string? _onError = string.Empty;
+    private bool _inputValueChanged = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _newDateTimeDt = CurrentDateTime?.DateTime;
+        await FormatDateTime(_newDateTimeDt);
+    }
+
+    private async Task ReturnDateTime()
+    {
+        await NewDateTimeCallback.InvokeAsync(_newDateTimeDt);
+    }
+
+    private string? Month
+    {
+        get => _month;
+        set
+        {
+            _month = GetDateTime(value, PickerConstants.MaximumMonthsString, PickerConstants.MaximumMonths);
+            if (_inputValueChanged)
+            {
+                CallJsForTab(PickerConstants.Month, PickerConstants.Date, 2, Month).GetAwaiter();
+                _inputValueChanged = false;
+            }
+            SetCalenderDateTime();
+        }
+    }
+
+    private string? Date
+    {
+        get => _date;
+        set
+        {
+            _date = GetDateTime(value, PickerConstants.MaximumDaysString, PickerConstants.MaximumDays);
+            if (_inputValueChanged)
+            {
+                CallJsForTab(PickerConstants.Date, PickerConstants.Year, 2, Date).GetAwaiter();
+                _inputValueChanged = false;
+            }
+            SetCalenderDateTime();
+        }
+    }
+
+    private string? Year
+    {
+        get => _year;
+        set
+        {
+            _year = GetDateTime(value, PickerConstants.MaximumYearsString, PickerConstants.MaximumYears);
+            if (_inputValueChanged)
+            {
+                CallJsForTab(PickerConstants.Year, PickerConstants.Hour, 4, Year).GetAwaiter();
+                _inputValueChanged = false;
+            }
+            SetCalenderDateTime();
+        }
+    }
+
+    private string? Hour
+    {
+        get => _hour;
+        set
+        {
+            _hour = GetDateTime(value, PickerConstants.MaximumHoursString, PickerConstants.MaximumHours, 0);
+            if (_inputValueChanged)
+            {
+                CallJsForTab(PickerConstants.Hour, PickerConstants.Minute, 2, Hour).GetAwaiter();
+                _inputValueChanged = false;
+            }
+            SetCalenderDateTime();
+        }
+    }
+
+    private string? Minute
+    {
+        get => _minute;
+        set
+        {
+            _minute = GetDateTime(value, PickerConstants.MaximumMinutesString, PickerConstants.MaximumMinutes);
+            if (_inputValueChanged)
+            {
+                CallJsForTab(PickerConstants.Minute, PickerConstants.Month, 2, Minute).GetAwaiter();
+                _inputValueChanged = false;
+            }
+            SetCalenderDateTime();
+        }
+    }
+
+
+    private string GetDateTime(string? value, string defaultValue, int max, int min = 1)
+    {
+        if (string.IsNullOrEmpty(value) || !int.TryParse(value, out _))
+        {
+            return string.Empty;
+        }
+        if ((!int.TryParse(value, out var num) || (num > max || num < min)) && num != 0) return defaultValue;
+        return value;
+    }
+
+    private async Task KeyDownMonthEventHandler(KeyboardEventArgs e)
+    {
+        var result = GetKeyCount(e, Month, PickerConstants.MaximumMonths);
+        if (result != 0)
+        {
+            Month = result.ToString()?.PadLeft(2, '0');
+        }
+        if (PickerConstants.numbers.Contains(e.Key))
+        {
+            _inputValueChanged = true;
+        }
+        await ReturnDateTime();
+    }
+
+    private async Task KeyDownDateEventHandler(KeyboardEventArgs e)
+    {
+        var result = GetKeyCount(e, Date, PickerConstants.MaximumDays);
+        if (result != 0)
+        {
+            Date = result.ToString()?.PadLeft(2, '0');
+        }
+        if (PickerConstants.numbers.Contains(e.Key))
+        {
+            _inputValueChanged = true;
+        }
+        await ReturnDateTime();
+    }
+
+    private async Task KeyDownYearEventHandler(KeyboardEventArgs e)
+    {
+        var result = GetKeyCount(e, Year, PickerConstants.MaximumYears);
+        if (result != 0)
+        {
+            Year = result.ToString();
+        }
+        if (PickerConstants.numbers.Contains(e.Key))
+        {
+            _inputValueChanged = true;
+        }
+        await ReturnDateTime();
+    }
+
+    private async Task KeyDownHourEventHandler(KeyboardEventArgs e)
+    {
+        var result = GetKeyCount(e, Hour, PickerConstants.MaximumHours);
+        if (result != 0)
+        {
+            Hour = result.ToString()?.PadLeft(2, '0');
+        }
+        if (PickerConstants.numbers.Contains(e.Key))
+        {
+            _inputValueChanged = true;
+        }
+        await ReturnDateTime();
+    }
+
+    private async Task KeyDownMinuteEventHandler(KeyboardEventArgs e)
+    {
+        var result = GetKeyCount(e, Minute, PickerConstants.MaximumMinutes);
+        if (result != 0)
+        {
+            Minute = result.ToString()?.PadLeft(2, '0');
+        }
+        if (PickerConstants.numbers.Contains(e.Key))
+        {
+            _inputValueChanged = true;
+        }
+        await ReturnDateTime();
+    }
+
+    private int? GetKeyCount(KeyboardEventArgs e, string? dateTime, int max, int min = 1)
+    {
+        if (!int.TryParse(dateTime, out var num))
+        {
+            if (!string.IsNullOrEmpty(dateTime))
+            {
+                return 0;
+            }
+        }
+        switch (e.Key)
+        {
+            case "ArrowUp":
+                {
+                    if (num < max || string.IsNullOrEmpty(dateTime))
+                    {
+                        num++;
+                    }
+                    break;
+                }
+            case "ArrowDown":
+                {
+                    if (num > min)
+                    {
+                        num--;
+                    }
+                    break;
+                }
+            case "t":
+                {
+                    if (e is { AltKey: true })
+                    {
+                        _newDateTimeDt = DateTimeOffset.Now.DateTime;
+                        SetDateTimeFields(_newDateTimeDt);
+                    }
+                    break;
+                }
+            default:
+                return 0;
+        }
+        return num;
+    }
+
+    private async Task FormatDateTime(DateTime? dateTime)
+    {
+        _newDateTimeDt = dateTime;
+        SetDateTimeFields(dateTime);
+        await ReturnDateTime();
+    }
+
+    private void SetDateTimeFields(DateTime? dateTime)
+    {
+        Month = dateTime?.Month.ToString().PadLeft(2, '0');
+        Date = dateTime?.Day.ToString().PadLeft(2, '0');
+        Year = dateTime?.Year.ToString();
+        Hour = dateTime?.Hour.ToString("00.##");
+        Minute = dateTime?.Minute.ToString("00.##");
+    }
+
+    private void FormatDateTimeFields()
+    {
+        if (!string.IsNullOrEmpty(Month)) Month = Month?.PadLeft(2, '0');
+        if (!string.IsNullOrEmpty(Date)) Date = Date?.PadLeft(2, '0');
+        if (!string.IsNullOrEmpty(Hour)) Hour = Hour?.PadLeft(2, '0');
+        if (!string.IsNullOrEmpty(Minute)) Minute = Minute?.PadLeft(2, '0');
+
+        SetCalenderDateTime();
+    }
+
+    private void SetCalenderDateTime()
+    {
+        if (int.TryParse(Month?.TrimStart(new[] { '0' }), out var m)
+            && int.TryParse(Date?.TrimStart(new[] { '0' }), out var d)
+            && int.TryParse(Year, out var y)
+            && int.TryParse(Hour, out var h)
+            && int.TryParse(Minute, out var mi)
+            && m > 0 && d > 0 && Year.Length == 4
+            && h > 0 && Minute.Length == 2)
+        {
+            if (VerifyDay(m, d, y))
+            {
+                _newDateTimeDt = new DateTime(y, m, d, h, mi, 0);
+                _onError = string.Empty;
+            }
+            else
+            {
+                _onError = "border-width:1px; border-color:red; border-radius:5px;";
+            }
+        }
+        else if (Year?.Length < 4 && _newDateTimeDt != null)
+        {
+            _onError = "border-width:1px; border-color:red; border-radius:5px;";
+        }
+        else
+        {
+            _onError = string.Empty;
+        }
+    }
+
+    private static bool VerifyDay(int month, int day, int year)
+    {
+        var thirtyDays = new List<int>(new[] { 02 });
+        var thirtyOneDays = new List<int>(new[] { 02, 04, 06, 09, 11 });
+
+        switch (day)
+        {
+            case < 29:
+            case 29 when (month == 2 && DateTime.IsLeapYear(year) || month != 2):
+            case 30 when !thirtyDays.Contains(month):
+            case 31 when !thirtyOneDays.Contains(month):
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private async Task CallJsForTab(string origin, string destination, int max, string? value)
+    {
+        if (int.TryParse(value, out _) && value.Length == max)
+        {
+            var obj = new
+            {
+                origin,
+                destination,
+                max
+            };
+            await JsRuntime.InvokeVoidAsync("dateTimeTab", obj);
+        }
+    }
+
+}
