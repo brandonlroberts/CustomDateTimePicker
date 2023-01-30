@@ -10,8 +10,10 @@
                @bind="@Month"
                @bind:event="oninput"
                @onkeydown="@(KeyDownMonthEventHandler)"
+               @onkeyup="@(KeyDownMonthEventHandler)"
                @onblur="@FormatDateTimeFields"
-               onfocus="this.select()"/>
+               onfocus="this.select()"
+               />
         <MudItem>
             /
         </MudItem>
@@ -24,7 +26,8 @@
                @bind:event="oninput"
                @onkeydown="@(KeyDownDateEventHandler)"
                @onblur="@FormatDateTimeFields"
-               onfocus="this.select()" />
+               onfocus="this.select()"
+               />
         <MudItem>
            /
         </MudItem>
@@ -36,7 +39,8 @@
                @bind="@Year"
                @bind:event="oninput"
                @onkeydown="@(KeyDownYearEventHandler)"
-               onfocus="this.select()" />
+               onfocus="this.select()"
+               />
         <MudItem>
             &nbsp;
         </MudItem>
@@ -49,7 +53,8 @@
                @bind:event="oninput"
                @onkeydown="@(KeyDownHourEventHandler)"
                @onblur="@FormatDateTimeFields"
-               onfocus="this.select()" />
+               onfocus="this.select()" 
+               />
         <MudItem>
             :
         </MudItem>
@@ -62,7 +67,8 @@
                @bind:event="oninput"
                @onkeydown="@(KeyDownMinuteEventHandler)"
                @onblur="@FormatDateTimeFields"
-               onfocus="this.select()" />
+               onfocus="this.select()" 
+               />
         <MudItem>
             <MudField Variant="Variant.Text" DisableUnderLine="true">&nbsp;</MudField>
         </MudItem>
@@ -87,6 +93,8 @@
     private string? _inputMinute;
     DateTime _newDateTimeDt;
     string? _onError = string.Empty;
+    private bool _monthFocus = false;
+    private bool _monthBlur = false;
     
     protected override async Task OnInitializedAsync()
     {
@@ -166,7 +174,7 @@
 
     private async Task KeyDownMonthEventHandler(KeyboardEventArgs e)
     {
-        var result = await GetKeyCount(e.Key, Month, PickerConstants.MaximumMonths);
+        var result = await GetKeyCount(e, Month, PickerConstants.MaximumMonths);
         if (result != 0)
         {
             Month = result.ToString()?.PadLeft(2, '0');
@@ -176,7 +184,7 @@
 
     private async Task KeyDownDateEventHandler(KeyboardEventArgs e)
     {
-        var result = await GetKeyCount(e.Key, Date, PickerConstants.MaximumDays);
+        var result = await GetKeyCount(e, Date, PickerConstants.MaximumDays);
         if (result != 0)
         {
             Date = result.ToString()?.PadLeft(2, '0');
@@ -186,7 +194,7 @@
 
     private async Task KeyDownYearEventHandler(KeyboardEventArgs e)
     {
-        var result = await GetKeyCount(e.Key, Year, PickerConstants.MaximumYears);
+        var result = await GetKeyCount(e, Year, PickerConstants.MaximumYears);
         if (result != 0)
         {
             Year = result.ToString();
@@ -196,7 +204,7 @@
 
     private async Task KeyDownHourEventHandler(KeyboardEventArgs e)
     {
-        var result = await GetKeyCount(e.Key, Hour, PickerConstants.MaximumHours);
+        var result = await GetKeyCount(e, Hour, PickerConstants.MaximumHours);
         if (result != 0)
         {
             Hour = result.ToString()?.PadLeft(2, '0');
@@ -206,7 +214,7 @@
 
     private async Task KeyDownMinuteEventHandler(KeyboardEventArgs e)
     {
-        var result = await GetKeyCount(e.Key, Minute, PickerConstants.MaximumMinutes);
+        var result = await GetKeyCount(e, Minute, PickerConstants.MaximumMinutes);
         if (result != 0)
         {
             Minute = result.ToString()?.PadLeft(2, '0');
@@ -214,7 +222,7 @@
         await ReturnDateTime();
     }
     
-    private async Task<int?> GetKeyCount(string key, string? dateTime, int max, int min = 1)
+    private async Task<int?> GetKeyCount(KeyboardEventArgs e, string? dateTime, int max, int min = 1)
     {
         if (!int.TryParse(dateTime, out var num))
         {
@@ -223,7 +231,7 @@
                 return 0;
             }
         }
-        switch (key)
+        switch (e.Key)
         {
             case "ArrowUp":
             {
@@ -238,6 +246,15 @@
                 if (num > min)
                 {
                     num--;
+                }
+                break;
+            }
+            case "t":
+            {
+                if (e is { CtrlKey: true })
+                {
+                    _newDateTimeDt = DateTimeOffset.Now.DateTime;
+                    SetDateTimeFields(_newDateTimeDt);
                 }
                 break;
             }
