@@ -8,6 +8,7 @@
            maxlength="2"
            @bind="@Month"
            @bind:event="oninput"
+           @onkeyup="@(KeyPressEventHandler)"
            @onkeydown="@(KeyDownMonthEventHandler)"
            @onblur="@FormatDateTimeFields"
            onfocus="this.select()" />
@@ -21,6 +22,7 @@
            maxlength="2"
            @bind="@Date"
            @bind:event="oninput"
+           @onkeyup="@(KeyPressEventHandler)"
            @onkeydown="@(KeyDownDateEventHandler)"
            @onblur="@FormatDateTimeFields"
            onfocus="this.select()" />
@@ -34,6 +36,7 @@
            maxlength="4"
            @bind="@Year"
            @bind:event="oninput"
+           @onkeyup="@(KeyPressEventHandler)"
            @onkeydown="@(KeyDownYearEventHandler)"
            onfocus="this.select()" />
     <MudItem>
@@ -46,6 +49,7 @@
            maxlength="2"
            @bind="@Hour"
            @bind:event="oninput"
+           @onkeyup="@(KeyPressEventHandler)"
            @onkeydown="@(KeyDownHourEventHandler)"
            @onblur="@FormatDateTimeFields"
            onfocus="this.select()" />
@@ -59,6 +63,7 @@
            maxlength="2"
            @bind="@Minute"
            @bind:event="oninput"
+           @onkeyup="@(KeyPressEventHandler)"
            @onkeydown="@(KeyDownMinuteEventHandler)"
            @onblur="@FormatDateTimeFields"
            onfocus="this.select()" />
@@ -70,32 +75,8 @@
 
 @code {
 
-    [Parameter]
-    public DateTimeOffset? CurrentDateTime { get; set; }
-
-    [Parameter]
-    public EventCallback<DateTimeOffset?> NewDateTimeCallback { get; set; }
-
-    private string? _month;
-    private string? _date;
-    private string? _year;
-    private string? _hour;
-    private string? _minute;
-    DateTime? _newDateTimeDt;
-    string? _onError = string.Empty;
-    private bool _inputValueChanged = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _newDateTimeDt = CurrentDateTime?.DateTime;
-        await FormatDateTime(_newDateTimeDt);
-    }
-
-    private async Task ReturnDateTime()
-    {
-        await NewDateTimeCallback.InvokeAsync(_newDateTimeDt);
-    }
-
+    [Parameter] public DateTimeOffset? CurrentDateTime { get; set; }
+    [Parameter] public EventCallback<DateTimeOffset?> NewDateTimeCallback { get; set; }
     private string? Month
     {
         get => _month;
@@ -125,7 +106,6 @@
             SetCalenderDateTime();
         }
     }
-
     private string? Year
     {
         get => _year;
@@ -140,7 +120,6 @@
             SetCalenderDateTime();
         }
     }
-
     private string? Hour
     {
         get => _hour;
@@ -155,7 +134,6 @@
             SetCalenderDateTime();
         }
     }
-
     private string? Minute
     {
         get => _minute;
@@ -169,6 +147,25 @@
             }
             SetCalenderDateTime();
         }
+    }
+    private string? _month;
+    private string? _date;
+    private string? _year;
+    private string? _hour;
+    private string? _minute;
+    DateTime? _newDateTimeDt;
+    string? _onError = string.Empty;
+    private bool _inputValueChanged = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _newDateTimeDt = CurrentDateTime?.DateTime;
+        await FormatDateTime(_newDateTimeDt);
+    }
+
+    private async Task ReturnDateTime()
+    {
+        await NewDateTimeCallback.InvokeAsync(_newDateTimeDt);
     }
 
 
@@ -279,15 +276,6 @@
                     }
                     break;
                 }
-            case "t":
-                {
-                    if (e is { AltKey: true })
-                    {
-                        _newDateTimeDt = DateTimeOffset.Now.DateTime;
-                        SetDateTimeFields(_newDateTimeDt);
-                    }
-                    break;
-                }
             default:
                 return 0;
         }
@@ -380,5 +368,15 @@
             await JsRuntime.InvokeVoidAsync("dateTimeTab", obj);
         }
     }
+
+    private async Task KeyPressEventHandler(KeyboardEventArgs e)
+    {
+        if (e.AltKey && e.Key == "t")
+        {
+            _newDateTimeDt = DateTimeOffset.Now.DateTime;
+            SetDateTimeFields(_newDateTimeDt);
+            await ReturnDateTime();
+        }
+     }
 
 }
