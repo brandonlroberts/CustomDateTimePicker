@@ -8,7 +8,7 @@
     <DateTimePicker CurrentDateTime="CurrentDateTime" NewDateTimeCallback="DateTimeCallbackHandler" />
 </div> 
 <br/>
-@CurrentDateTime.DateTime.ToLongDateString() @CurrentDateTime.DateTime.ToShortTimeString()
+@CurrentDateTime.DateTime.ToLongDateString() @CurrentDateTime.DateTime.ToShortTimeString() @CurrentDateTime.Offset
 
 @code {
     private DateTimeOffset CurrentDateTime { get; set; } = DateTimeOffset.Now;

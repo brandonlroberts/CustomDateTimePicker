@@ -142,10 +142,11 @@
             _minute = GetDateTime(value, PickerConstants.MaximumMinutesString, PickerConstants.MaximumMinutes);
             if (_inputValueChanged)
             {
-                CallJsForTab(PickerConstants.Minute, PickerConstants.Month, 2, Minute).GetAwaiter();
+                //CallJsForTab(PickerConstants.Minute, PickerConstants.Month, 2, Minute).GetAwaiter();
                 _inputValueChanged = false;
             }
             SetCalenderDateTime();
+            ReturnDateTime().GetAwaiter();
         }
     }
     private string? _month;

@@ -22,6 +22,6 @@
         public static readonly int MaximumHours = 23;
         public static readonly int MaximumMinutes = 59;
         
-        public static List<string> numbers = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        public static List<string> numbers = new List<string> { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
     }
 }
