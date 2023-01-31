@@ -74,7 +74,6 @@
 </div>
 
 @code {
-
     [Parameter] public DateTimeOffset? CurrentDateTime { get; set; }
     [Parameter] public EventCallback<DateTimeOffset?> NewDateTimeCallback { get; set; }
     private string? Month
@@ -91,7 +90,6 @@
             SetCalenderDateTime();
         }
     }
-
     private string? Date
     {
         get => _date;
